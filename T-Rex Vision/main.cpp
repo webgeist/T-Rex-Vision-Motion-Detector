@@ -25,6 +25,8 @@ Mat image, grayscale, blurGray, coloredOutput;
 std::vector<Mat> ringBuffer;
 int ringBufferOldest = 0;
 
+int screenshotCount = 0; // счетчик скриншотов
+
 string windowName = "T-Rex Vision | Press Q or Esc to quit";
 
 string diffThresholdTrackbarName = "Diff. Threshold";
@@ -32,12 +34,12 @@ string prevFramesToStoreTrackbarName = "Frame Memory";
 
 
 // Add blurred grayscale data buffer to the current ring buffer
-void addToRingBuffer(Mat toAdd)
-{
+void addToRingBuffer( Mat toAdd ){
+	
     // cout << "Adding to ring buffer..." << endl;
     
     // If ring buffer is empty, fill up with occurrences of current data buffer
-    if (ringBuffer.empty())
+    if ( ringBuffer.empty() )
     {
         // Note that prevFramesToStore indicates how many historical frames
         // are saved, so a prevFramesToStore of 0 would still indicate a ring buffer
@@ -132,27 +134,22 @@ void renderRingBuffer()
     image.copyTo(coloredOutput, drawMask);
     
     imshow(windowName, coloredOutput);
-    
 }
 
 
 // Process captured video data
-bool process(VideoCapture& capture)
-{
-    
-    int screenshotCount = 0;
-    char screenshotFilename[200];
-    
-    // Loop until a valid image is obtained from the camera
-    while(1)
-    {
-        // cout << "Obtaining image..." << endl;
-        capture >> image;
-        if (image.empty())
-            continue;
-        else
-            break;
-    }
+bool process( VideoCapture& capture ) {
+
+    char* screenshotFilename;
+
+	// Loop until a valid image is obtained from the camera
+	while(1) {
+		// cout << "Obtaining image..." << endl;
+		capture >> image;
+		if( !image.empty() ) {
+			break;
+		}
+	}
     
     // imshow(windowName, image);
     
@@ -170,17 +167,17 @@ bool process(VideoCapture& capture)
     
     // Handle user input
     char key = (char) waitKey(5); //delay 15 ms
-    switch (key)
-    {
-            // Quit program
+    switch (key) {
+        // Quit program
         case 'q':
         case 'Q':
         case 27: // Esc key
             return true;
             // Save screenshot
         case ' ':
-            sprintf(screenshotFilename, "%.3d.jpg", screenshotCount++);
-            imwrite(screenshotFilename, image);
+            sprintf( screenshotFilename, "%d.jpg", screenshotCount++ );
+
+            imwrite( screenshotFilename, image );
             cout << "Saved " << screenshotFilename << endl;
             break;
             // Decrease difference threshold
@@ -236,7 +233,7 @@ bool process(VideoCapture& capture)
 }
 
 // Callback for when the difference trackbar is changed
-void onDiffThresholdTrackbar(int, void*)
+void onDiffThresholdTrackbar( int, void* )
 {
     
     // cout << "onDiffThreshold called" << endl;
@@ -259,9 +256,9 @@ int main(int ac, char** av)
     VideoCapture capture(0); // open video capture device 0
     
     // If the device couldn't be opened, error out and close
-    if (!capture.isOpened()) {
+    if( !capture.isOpened() ) {
         cerr << "Failed to open video device!" << endl;
-        return 1;
+        return EXIT_FAILURE;
     }
     
     // Create application window
@@ -283,5 +280,5 @@ int main(int ac, char** av)
         endProgram = process(capture);
     }
     
-    return 0;
+    return EXIT_SUCCESS;
 }
